@@ -1,2 +1,2 @@
 # backdoor code 
-This is my first repository. It stores codes about backdoor attacks and methods
+This is DNN backdoor repository. It stores codes about backdoor attacks and defenses methods.
