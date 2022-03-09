@@ -65,7 +65,7 @@ def test_model(model, loader, criterion,device):
     
     
 # 训练模型函数
-def train_model(model, trainloader, testloader, criterion, optimizer, device, epochs, scheduler=None):
+def train_model(model, trainloader, testloader, criterion, optimizer, device, epochs, scheduler=None, save_path=None):
     criterion = criterion.to(device)
     model = model.to(device)
 
@@ -75,6 +75,9 @@ def train_model(model, trainloader, testloader, criterion, optimizer, device, ep
         train_model_step(model, trainloader, criterion, optimizer, device)
         print('Testing...')
         test_model(model, testloader, criterion,device)
+
+        if save_path:
+            torch.save(model, save_path)
         
         if scheduler:
             scheduler.step()
@@ -86,7 +89,6 @@ def train_model(model, trainloader, testloader, criterion, optimizer, device, ep
 # 与打印数据有关的函数，来自原文章的代码
 def tabulate_step_meter(batch_idx, num_batches, num_intervals, meter_list):
     """ Tabulate current average value of meters every `step_interval`.
-
     Args:
         batch_idx (int): The batch index in an epoch.
         num_batches (int): The number of batch in an epoch.
@@ -109,7 +111,6 @@ def tabulate_step_meter(batch_idx, num_batches, num_intervals, meter_list):
 
 def tabulate_epoch_meter(elapsed_time, meter_list):
     """ Tabulate total average value of meters every epoch.
-
     Args:
         eplased_time (float): The elapsed time of a epoch.
         meter_list (list or tuple of AverageMeter): A list of meters.
