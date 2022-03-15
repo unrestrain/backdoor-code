@@ -1,0 +1,2 @@
+Model: /home/yangzheng/models/k_arm/white_and_black.pth Trojan: trojan Trigger Type: polygon_global Victim Class: all Target Class: 0 Trigger Size: 0.0 Time Cost: 1585.4347512722015 Description: Trigger size is smaller (larger) than corresponding bounds
+Model: /home/yangzheng/models/k_arm/white_and_black_poisoned.pth Trojan: trojan Trigger Type: polygon_global Victim Class: all Target Class: 0 Trigger Size: 0.0 Time Cost: 1446.8001146316528 Description: Trigger size is smaller (larger) than corresponding bounds
