@@ -147,3 +147,15 @@ runner = Runner(runner_config)
 runner.run()
 
 
+# 评估训练得到的后门模型
+import train_utils
+
+trainloader = torch.utils.data.DataLoader(next(manage_obj.load_data()[0]), batch_size=128)
+model = torch.load('/home/yangzheng/models/trojai/models/model.pt.1')
+
+testcleanloader = torch.utils.data.DataLoader(manage_obj.load_data()[1], batch_size=128)
+testpoisonedloader = torch.utils.data.DataLoader(manage_obj.load_data()[2], batch_size=128)
+
+train_utils.test_model(model, trainloader, torch.nn.CrossEntropyLoss(), device='cuda:0')
+train_utils.test_model(model, testcleanloader, torch.nn.CrossEntropyLoss(), device='cuda:0')
+train_utils.test_model(model, testpoisonedloader, torch.nn.CrossEntropyLoss(), device='cuda:0')
