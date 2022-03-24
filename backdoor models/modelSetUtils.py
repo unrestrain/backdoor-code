@@ -44,3 +44,32 @@ def detectBadnetWithKArm(config_path):
     config = KArmDetecter.KArmConfig(model_path,data_dir,num_classes,channels,width,height)
     result = KArmDetecter.KArmDetect(config)
     return result
+
+
+
+from badnet import Badnet
+from my_utils import genDatasetForTrojaiFromTorchDataset
+import numpy as np
+import torchvision
+import os
+import matplotlib.image as mp
+import matplotlib.pyplot as plt
+import json
+
+def genDataForKArm(dataset,save_dir,num_of_each_class):
+    os.makedirs(save_dir, exist_ok=True)
+    num_classes = len(dataset.classes)
+    num_cal_list = [0] * num_classes
+    for data, target in dataset:
+        num_cal_list[target] += 1
+        if num_cal_list[target] < num_of_each_class:
+            image_file = os.path.join(save_dir, f'class_{target}_example_{num_cal_list[target]}.jpg')
+            mp.imsave(image_file, data)
+        else:
+            continue
+
+
+
+def save_json(filename, json_data):
+    with open(filename,'w') as f:
+        json.dump(json_data,f)
