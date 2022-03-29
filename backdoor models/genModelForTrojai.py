@@ -9,23 +9,32 @@ import json
 from torchvision import transforms
 import shutil
 import cv2
-import random
-import shutil
-import copy
+
 
 def genDataForKArm(dataset,save_dir,num_of_each_class):
     os.makedirs(save_dir, exist_ok=True)
-    num_classes = len(dataset.classes)
-    num_cal_list = [0] * num_classes
-    for data, target in dataset:
-        num_cal_list[target] += 1
-        if num_cal_list[target] < num_of_each_class:
-            image_file = os.path.join(save_dir, f'class_{target}_example_{num_cal_list[target]}.jpg')
-            mp.imsave(image_file, mp.pil_to_array(data))
-        else:
-            continue
+    try:
+        num_classes = len(dataset.classes)
+        num_cal_list = [0] * num_classes
+        for data, target in dataset:
+            num_cal_list[target] += 1
+            if num_cal_list[target] < num_of_each_class:
+                image_file = os.path.join(save_dir, f'class_{target}_example_{num_cal_list[target]}.jpg')
+                cv2.imwrite(image_file, mp.pil_to_array(data))
+            else:
+                continue
+    except:
+        num_classes = dataset.get_data_description().num_classes
+        num_cal_list = [0] * num_classes
+        for data, target in dataset:
+            num_cal_list[target] += 1
+            if num_cal_list[target] < num_of_each_class:
+                image_file = os.path.join(save_dir, f'class_{target}_example_{num_cal_list[target]}.jpg')
+                cv2.imwrite(image_file,data.permute(1,2,0).numpy()*255)
+            else:
+                continue
 
-
+    
 # train_transform = transforms.Compose(
 #     [
 #         # transforms.ToTensor(),
@@ -43,7 +52,9 @@ def save_json(filename, json_data):
     with open(filename,'w') as f:
         json.dump(json_data,f)
 
-
+import random
+import shutil
+import copy
 
 class BadnetConfig:
     def __init__(self, trigger, trigger_location, poisoned_rate, target, victim=None):
@@ -90,22 +101,29 @@ class ModelCompose:
         return copy.deepcopy(self.model)
 
 
-def trainBadnetWithConfig(root_dir, id_dir, badnet_config, model_compose):
+def trainBadnetWithConfig(root_dir, id_dir, badnet_config, model_compose, transform_train=None, transform_test=None):
     modelset_dir = os.path.join(root_dir, id_dir)
     if os.path.exists(modelset_dir):
         shutil.rmtree(modelset_dir)
     evaluate_model_path = os.path.join(modelset_dir, 'model.pt.1')
     data_dir = os.path.join(modelset_dir, 'data')
+    poisoned_data_dir = os.path.join(modelset_dir, 'poisoned_data')
     trigger_path = os.path.join(modelset_dir, 'trigger.jpg')
     config_path = os.path.join(modelset_dir, 'config.json')
     os.makedirs(modelset_dir,exist_ok=True)
 
-    genDataForKArm(cifartrainset, data_dir, 40)
+    
 
-    mp.imsave(trigger_path, badnet_config.trigger)
+    cv2.imwrite(trigger_path, badnet_config.trigger)
   
     badnet = Badnet(trigger=badnet_config.trigger, target=badnet_config.target, location=badnet_config.trigger_location)
-    badnet.load_data(model_compose.trainsetfile, model_compose.testsetfile, badnet_config.poisoned_rate, transform_train=None, transform_test=None)
+    badnet.load_data(model_compose.trainsetfile, model_compose.testsetfile, badnet_config.poisoned_rate, transform_train=transform_train, transform_test=transform_test)
+    
+    print('saving sample clean data...')
+    genDataForKArm(badnet.manage_obj.load_data()[1], data_dir, 40)
+    print('saving sample poisoned data...')
+    genDataForKArm(badnet.manage_obj.load_data()[2], poisoned_data_dir, 40)
+
     badnet.attack(model_compose.copyModel(), epochs=model_compose.epochs, device=model_compose.device,model_save_dir=modelset_dir)
 
     train_acc, test_acc, attack_acc = badnet.evaluate(device=model_compose.device, model=evaluate_model_path)
@@ -133,22 +151,3 @@ def trainBadnetWithConfig(root_dir, id_dir, badnet_config, model_compose):
     }
 
     save_json(config_path, json_data)
-
-trigger = mp.imread('flower.jpeg')
-random_config = BadnetRandomConfig(trigger, (7,50),(0,170),(0.01,0.08),list(range(10)))
-root_dir = '/home/yangzheng/models/backdoor_models'
-model = torchvision.models.resnet18(pretrained=False,num_classes=10)
-transform = transforms.Resize((224,224))
-cifartrainset = torchvision.datasets.CIFAR10('/home/yangzheng/data/cifar10',train=True, download=True,transform=transform)
-cifartestset = torchvision.datasets.CIFAR10('/home/yangzheng/data/cifar10',train=False, download=True,transform=transform)
-trainsetfile = genDatasetForTrojaiFromTorchDataset(cifartrainset,'cifar10','train_original.csv','/home/yangzheng/data/trojai/cifar10', train=True)
-testsetfile = genDatasetForTrojaiFromTorchDataset(cifartestset,'cifar10','test_original.csv','/home/yangzheng/data/trojai/cifar10', train=False)
-
-trainsetfile = '/home/yangzheng/data/trojai/cifar10/train_original.csv'
-testsetfile = '/home/yangzheng/data/trojai/cifar10/test_original.csv'
-
-model_config = ModelCompose(model, trainsetfile,testsetfile,model_type='resnet18',dataset_type='cifar10',num_classes=10,image_size=(224,224),epochs=100)
-for i in range(3,30):
-    id_dir = str(i).rjust(5,'0')
-    badnet_config = random_config.genRandomParam()
-    trainBadnetWithConfig(root_dir, id_dir, badnet_config, model_config)
