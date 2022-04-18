@@ -12,7 +12,7 @@ ulp.save('my_ulp.pkl')
 ulp.load('my_ulp.pkl')
 print(ulp.predict(data))
 ```
-其中train_datas是一个列表，列表中的内容可有又两种形式，一种是模型的绝对路径，另外一种是元组(model_generate,model_state)，model_generate是一个函数，该函数不带参数，调用会生成一个参数随机的伸进网络，model_state是该神经网络训练好的参数)
+其中train_datas是一个列表，列表中的内容可有又两种形式，一种是模型的绝对路径，另外一种是元组(model_generate,model_state)，model_generate是一个函数，该函数不带参数，调用会生成一个参数随机的伸进网络，model_state是该神经网络训练好的参数)  
 使用内置参数快速进行检测的方法：
 ```python
 from ULP import predict_fast
