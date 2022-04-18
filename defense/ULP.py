@@ -17,12 +17,12 @@ import logging
 
 
 class ULP():
-    def __init__(self, N, W, H, nofclasses):
+    def __init__(self, N, W, H, nofclasses,device='cuda:0'):
         self.N = N
-        self.X=torch.rand((N,3,W,H),requires_grad=True, device='cuda')
+        self.X=torch.rand((N,3,W,H),requires_grad=True, device=device)
         self.X.data*=255.
-        self.W=torch.randn((N*nofclasses,2),requires_grad=True, device='cuda')
-        self.b=torch.zeros((2,),requires_grad=True, device='cuda')
+        self.W=torch.randn((N*nofclasses,2),requires_grad=True, device=device)
+        self.b=torch.zeros((2,),requires_grad=True, device=device)
         
     def train(self, train_datas, train_labels, val_datas=None, val_labels=None, epochs=200, logfile = './ULP.txt', device='cuda'):
         # ### Perform Optimization
@@ -52,9 +52,13 @@ class ULP():
             randind=np.random.permutation(len(train_datas))
             train_datas=np.asarray(train_datas)[randind]
             train_labels=train_labels[randind]
-            for i,(model_generate,model) in tqdm(enumerate(train_datas)):
-                cnn = model_generate()
-                cnn.load_state_dict(torch.load(model))
+            for i,model in tqdm(enumerate(train_datas)):
+                if type(model)==tuple or type(model)==list:
+                    model_generate,model_state = model
+                    cnn = model_generate()
+                    cnn.load_state_dict(torch.load(model_state))
+                else:
+                    cnn = torch.load(model)
                 cnn.eval()
                 cnn.to(device)
                 label=np.array([train_labels[i]])
@@ -98,9 +102,13 @@ class ULP():
 
             with torch.no_grad():
                 pred=list()
-                for i,(model_generate,model) in tqdm(enumerate(train_datas)):
-                    cnn = model_generate()
-                    cnn.load_state_dict(torch.load(model))
+                for i,model in tqdm(enumerate(train_datas)):
+                    if type(model)==tuple or type(model)==list:
+                        model_generate,model_state = model
+                        cnn = model_generate()
+                        cnn.load_state_dict(torch.load(model_state))
+                    else:
+                        cnn = torch.load(model)
                     cnn.eval()
                     cnn.to(device)
                     label=np.array([train_labels[i]])
@@ -109,9 +117,13 @@ class ULP():
                 train_accuracy=(1*(np.array(pred)==train_labels.astype('uint'))).sum()/float(train_labels.shape[0])
 
                 pred=list()
-                for i,(model_generate,model) in tqdm(enumerate(val_datas)):
-                    cnn = model_generate()
-                    cnn.load_state_dict(torch.load(model))
+                for i,model in tqdm(enumerate(val_datas)):
+                    if type(model)==tuple or type(model)==list:
+                        model_generate,model_state = model
+                        cnn = model_generate()
+                        cnn.load_state_dict(torch.load(model_state))
+                    else:
+                        cnn = torch.load(model)
                     cnn.eval()
                     cnn.to(device)
                     label=np.array([val_labels[i]])
