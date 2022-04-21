@@ -12,9 +12,10 @@ def train_meta_model(meta_model,shadow_model,trainset,testset,epoch=10,save_path
     :param shadow_model: model structure
     :param trainset: list, each element is 
     '''
+    optimizer = torch.optim.Adam(meta_model.parameters(), lr=1e-3)
     for i in range(epoch):
         print(('epoch:%s'%i).center(50,'='))
-        loss,auc,acc = epoch_meta_eval(meta_model,shadow_model,trainset,is_discrete=False,threshold=0.5)
+        epoch_meta_train(meta_model, shadow_model, optimizer, train_dataset, is_discrete=False, threshold=0.5)
         print('train acc: %s'%acc)
         loss,auc,acc = epoch_meta_eval(meta_model,shadow_model,testset,is_discrete=False,threshold=0.5)
         print('test acc: %s'%acc)
