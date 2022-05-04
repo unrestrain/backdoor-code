@@ -52,7 +52,7 @@ class CleanLabelDataset(Dataset):
             target = self.target_label
         else:
             img = self.augment(img, bd_transform=None)
-        item = {"img": img, "target": target}
+        item = (img, target)
 
         return item
 
