@@ -16,8 +16,8 @@ def poison_train(model, loader, criterion, optimizer):
     gpu = next(model.parameters()).device
     start_time = time.time()
     for batch_idx, batch in enumerate(loader):
-        data = batch["img"].cuda(gpu, non_blocking=True)
-        target = batch["target"].cuda(gpu, non_blocking=True)
+        data = batch[0].cuda(gpu, non_blocking=True)
+        target = batch[1].cuda(gpu, non_blocking=True)
         output = model(data)
         loss = criterion(output, target)
         optimizer.zero_grad()
@@ -44,8 +44,8 @@ def test(model, loader, criterion):
     gpu = next(model.parameters()).device
     start_time = time.time()
     for batch_idx, batch in enumerate(loader):
-        data = batch["img"].cuda(gpu, non_blocking=True)
-        target = batch["target"].cuda(gpu, non_blocking=True)
+        data = batch[0.cuda(gpu, non_blocking=True)
+        target = batch[1].cuda(gpu, non_blocking=True)
         with torch.no_grad():
             output = model(data)
         pred = output.argmax(dim=1, keepdim=True)
