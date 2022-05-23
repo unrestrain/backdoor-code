@@ -186,7 +186,7 @@ def genCifar10CsvForTrojai(data_dir, csv_filename, size=(32,32)):
 
 class ImagenetteDatasetFromCsv(torch.utils.data.Dataset):
     def __init__(self, csv_file, transform=None):
-        super(ImagenetteDataset, self).__init__()
+        super(ImagenetteDatasetFromCsv, self).__init__()
         file = pd.read_csv(csv_file)
         self.images = file['file']
         self.labels = file['label']
@@ -206,7 +206,7 @@ class ImagenetteDatasetFromCsv(torch.utils.data.Dataset):
         return len(self.images)
       
       
- class ImagenetteDataset(torch.utils.data.Dataset):
+class ImagenetteDataset(torch.utils.data.Dataset):
     def __init__(self, dataset_dir, transform=None):
         super(ImagenetteDataset, self).__init__()
         self.transform = transform
@@ -228,7 +228,8 @@ class ImagenetteDatasetFromCsv(torch.utils.data.Dataset):
         image = Image.open(image_path)
         if self.transform:
             image = self.transform(image)
-
+        if image.shape[0]==1:
+            image=image.repeat(3,1,1)
         label = torch.tensor(self.target[index])
         return image, label
 
