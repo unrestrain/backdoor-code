@@ -236,7 +236,34 @@ class ImagenetteDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.data)
 
+    
+    
+class PoisonedImagenetteDataset(torch.utils.data.Dataset):
+    def __init__(self,dataset, trigger=None,target=0,location=(0,0),image_size=(224,224),poisoned_rate=0):
+        super(PoisonedImagenetteDataset).__init__()
+            
+        self.dataset = dataset
+        self.target = target
+        self.location = location
+        self.image_size = image_size
+        self.poisoned_rate = poisoned_rate
+        self.trigger = trigger
 
+    def __getitem__(self,index):
+        x,y = self.dataset[index]
+        if random.random()<self.poisoned_rate:
+            x =  merge(x,self.trigger,self.location)
+            y = self.target
+        return x,y
+    
+    def __len__(self):
+        return len(self.dataset)
+
+
+
+
+    
+    
 def save_json(filename, json_data):
     with open(filename,'w') as f:
         json.dump(json_data,f)
