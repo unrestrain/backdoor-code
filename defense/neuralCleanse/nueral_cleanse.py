@@ -111,7 +111,7 @@ def detect(model, trainset, image_size=(32, 32), device='cuda:0',C=3):
         trigger, mask = train(model, label, train_loader, param,device=device,C=C)
         norm_list.append(mask.sum().item())
 
-        trigger = trigger.cpu().detach().repeat(3,1,1).numpy()
+        trigger = trigger.cpu().detach().numpy()
         trigger = np.transpose(trigger, (1,2,0))
         mp.imsave('mask/trigger_{}.png'.format(label),trigger)
 
